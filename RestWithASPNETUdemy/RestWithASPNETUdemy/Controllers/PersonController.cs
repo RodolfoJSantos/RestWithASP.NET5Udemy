@@ -1,12 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using RestWithASPNETUdemy.Business;
 using RestWithASPNETUdemy.Data.VO;
+using Serilog;
 
 namespace RestWithASPNETUdemy.Controllers
 {
 	[ApiVersion("1")]
 	[ApiController]
+    [Authorize("Bearer")]
     [Route("api/[controller]/v{version:apiVersion}")]
     public class PersonController : ControllerBase
     {
@@ -22,14 +25,14 @@ namespace RestWithASPNETUdemy.Controllers
         }
 
       
-        [HttpGet]
+        [HttpGet("{sortDirection}/{pageSize}/{page}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public IActionResult Get()
+        public IActionResult Get([FromQuery] string name, string sortDirection, int pageSize, int page)
 		{
-            return Ok(_personBusiness.FindAll());
+            return Ok(_personBusiness.FindWithPagedSearch(name, sortDirection, pageSize, page));
 		}
 
         [HttpGet("{id}")]
@@ -44,6 +47,19 @@ namespace RestWithASPNETUdemy.Controllers
 
             return Ok(person);
 		}
+
+        [HttpGet("findByName")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        public IActionResult Get([FromQuery]string firstName, [FromQuery]string secondName)
+        {
+            var person = _personBusiness.FindByName(firstName, secondName);
+            if (person == null) return NotFound();
+
+            return Ok(person);
+        }
 
         [HttpPost]
         [ProducesResponseType(200)]
@@ -66,6 +82,16 @@ namespace RestWithASPNETUdemy.Controllers
 
             return Ok(_personBusiness.Update(person));
 		}
+
+        [HttpPatch("{id}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        public IActionResult Patch(long id)
+        {
+            return Ok(_personBusiness.Disable(id));
+        }
 
         [HttpDelete("{id}")]
         [ProducesResponseType(204)]

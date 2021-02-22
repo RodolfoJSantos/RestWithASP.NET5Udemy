@@ -5,10 +5,10 @@ namespace RestWithASPNETUdemy.Data.VO
 {
 	public class PersonVO	
 	{
-		[JsonPropertyName("code")]
+		[JsonPropertyName("id")]
 		public long Id { get; set; }
 
-		[JsonPropertyName("name")]
+		[JsonPropertyName("first-name")]
 		public string FirstName { get; set; }
 
 		[JsonPropertyName("last-name")]
@@ -17,7 +17,10 @@ namespace RestWithASPNETUdemy.Data.VO
 		[JsonIgnore]
 		public string Address { get; set; }
 
-		[JsonPropertyName("sex")]
+		[JsonPropertyName("gender")]
 		public string Gender { get; set; }
+
+		[JsonPropertyName("enabled")]
+		public bool Enabled { get; set; }
 	}
 }

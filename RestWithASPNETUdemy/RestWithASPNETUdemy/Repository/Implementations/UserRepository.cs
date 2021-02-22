@@ -2,11 +2,9 @@
 using RestWithASPNETUdemy.Model;
 using RestWithASPNETUdemy.Model.Context;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace RestWithASPNETUdemy.Repository.Implementations
 {
@@ -26,6 +24,20 @@ namespace RestWithASPNETUdemy.Repository.Implementations
 			return _context.Users.FirstOrDefault(u => u.UserName == user.UserName && u.Password == pass);
 		}
 
+		public User ValidateCredentials(string userName)
+		{
+			return _context.Users.SingleOrDefault(u => u.UserName == userName);
+		}
+
+		public bool RevokeToken(string userName)
+		{
+			var user = _context.Users.SingleOrDefault(u => u.UserName == userName);
+			if (user == null) return false;
+			user.RefreshToken = null;
+			_context.SaveChanges();
+			return true;
+		}
+
 		private string ComputeHash(string input, SHA256CryptoServiceProvider algorithm)
 		{
 			Byte[] inputBytes = Encoding.UTF8.GetBytes(input); 
@@ -36,7 +48,7 @@ namespace RestWithASPNETUdemy.Repository.Implementations
 
 		public User RefreshUserInfo(User user)
 		{
-			if(_context.Users.Any(u => u.Id == user.Id)) return null;
+			if(!_context.Users.Any(u => u.Id == user.Id)) return null;
 
 			var result = _context.Users.SingleOrDefault(i => i.Id.Equals(user.Id));
 			if (result != null)
@@ -55,5 +67,6 @@ namespace RestWithASPNETUdemy.Repository.Implementations
 			}
 			return result;
 		}
+
 	}
 }

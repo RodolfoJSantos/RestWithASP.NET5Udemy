@@ -16,6 +16,16 @@ using Microsoft.Net.Http.Headers;
 using Swashbuckle.AspNetCore.Swagger;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Rewrite;
+using RestWithASPNETUdemy.Services;
+using RestWithASPNETUdemy.Services.Implementations;
+using RestWithASPNETUdemy.Configurations;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.AspNetCore.Http;
 
 namespace RestWithASPNETUdemy
 {
@@ -37,6 +47,39 @@ namespace RestWithASPNETUdemy
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var tokenConfigurations = new TokenConfiguration();
+            new ConfigureFromConfigurationOptions<TokenConfiguration>(
+                    Configuration.GetSection("TokenConfigurations")
+                )
+                .Configure(tokenConfigurations);
+
+            services.AddSingleton(tokenConfigurations);
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = tokenConfigurations.Issuer,
+                    ValidAudience = tokenConfigurations.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenConfigurations.Secret))
+                }
+            );
+
+            services.AddAuthorization(auth =>
+            {
+                auth.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
+                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser().Build());
+            });
+
             services.AddCors(options => options.AddDefaultPolicy(builder =>
             {
                 builder.AllowAnyOrigin()
@@ -45,17 +88,17 @@ namespace RestWithASPNETUdemy
             }));
 
 
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson();
 
             var conn = Configuration["MySQLConnection:MySQLConnectionString"];
             services.AddDbContext<MysqlContext>(opt => opt.UseMySql(conn,
                        ServerVersion.AutoDetect(conn)));
 
-			if (Environment.IsDevelopment())
-			{
-                MigrateDatabase(conn);
-			}
-
+			//if (Environment.IsDevelopment())
+			//{
+   //             MigrateDatabase(conn);
+			//}
+             
             services.AddMvc(options =>
             {
                 options.RespectBrowserAcceptHeader = true;
@@ -84,8 +127,16 @@ namespace RestWithASPNETUdemy
                     });
             });
 
+            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            services.AddTransient<ITokenService, TokenService>();
+
+            services.AddScoped<IFileBusiness, FileBusiness>();
             services.AddScoped<IPersonBusiness, PersonBusiness>();
             services.AddScoped<IBookBusiness, BookBusiness>();
+            services.AddScoped<ILoginBusiness, LoginBusiness>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IPersonRepository, PersonRepository>();
             services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
         }
 

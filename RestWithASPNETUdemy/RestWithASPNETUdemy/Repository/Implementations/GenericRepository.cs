@@ -9,7 +9,7 @@ namespace RestWithASPNETUdemy.Repository.Implementations
 {
 	public class GenericRepository<T> : IRepository<T> where T : EntityBase
 	{
-		private readonly MysqlContext _mysqlContext;
+		protected readonly MysqlContext _mysqlContext;
 		private readonly DbSet<T> dataSet;
 		public GenericRepository(MysqlContext mysqlContext)
 		{
@@ -81,6 +81,26 @@ namespace RestWithASPNETUdemy.Repository.Implementations
 		public bool Exists(long id)
 		{
 			return dataSet.Any(i => i.Id.Equals(id));
+		}
+
+		public List<T> FindWithPagedSearch(string query)
+		{
+			return dataSet.FromSqlRaw(query).ToList();
+		}
+
+		public int GetCount(string query)
+		{
+			var result = "";
+			using (var connection = _mysqlContext.Database.GetDbConnection())
+			{
+				connection.Open();
+				using (var command = connection.CreateCommand())
+				{
+					command.CommandText = query;
+					result = command.ExecuteScalar().ToString();
+				}
+			}
+			return int.Parse(result);
 		}
 	}
 }
