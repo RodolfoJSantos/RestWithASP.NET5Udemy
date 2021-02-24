@@ -1,7 +1,8 @@
-﻿version: '3.4'
+version: '3.4'
+
 services:
   db:
-    image: rest-with-aspnet-udemy-db
+    image: rest-with-asp-net-udemy-db
     command: mysqld --default-authentication-plugin=mysql_native_password
     restart: always
     build:
@@ -17,8 +18,9 @@ services:
       - 3308:3306
     networks:
       - udemy-network
-  rest-with-aspnet-udemy:
-    image: rest-with-aspnet-udemy
+      
+  rest-with-asp-net-udemy:
+    image: rest-with-asp-net-udemy
     build:
       context: .
       dockerfile: RestWithASPNETUdemy/Dockerfile
@@ -34,3 +36,4 @@ services:
 networks:
   udemy-network:
     driver: bridge
+    
