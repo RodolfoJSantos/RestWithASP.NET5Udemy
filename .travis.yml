@@ -15,8 +15,8 @@ deploy:
   script:
     docker tag rest-with-asp-net-udemy:$TRAVIS_JOB_ID rodjsanti/rest-with-asp-net-udemy:$TRAVIS_JOB_ID;
     docker tag rest-with-asp-net-udemy-db:$TRAVIS_JOB_ID rodjsanti/rest-with-asp-net-udemy-db:$TRAVIS_JOB_ID;
-    docker push $DOCKER_USERNAME/rodjsanti/rest-with-asp-net-udemy:$TRAVIS_JOB_ID;
-    docker push $DOCKER_USERNAME/rodjsanti/rest-with-asp-net-udemy-db:$TRAVIS_JOB_ID;
+    docker push $DOCKER_USERNAME/rest-with-asp-net-udemy:$TRAVIS_JOB_ID;
+    docker push $DOCKER_USERNAME/rest-with-asp-net-udemy-db:$TRAVIS_JOB_ID;
   on:
     brach: master
 notifications:
