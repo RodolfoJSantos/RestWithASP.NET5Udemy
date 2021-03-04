@@ -20,7 +20,7 @@ jobs:
      
       - name: Build Images
         working-directory: ./RestWithASPNETUdemy
-        run: docker-compose-build
+        run: docker-compose build
         
       - name: Push to Azure Container
         run: |
